@@ -107,82 +107,95 @@ local function isOffense(playerVehicle)
 	-- PLATE / LOOKUP BASED OFFENSES
 	local plateData = getPlateInformation(playerVehicle)
 
-	for i, data in pairs(plateData) do
-		-- VEHICLE REG
-		if data.recordTypeId == 5 then
-			for _, section in pairs(data.sections) do
-				-- Flags
-				-- temp like this, so I can print out that data
-				if section.label == "Flags" then
-					for _, flag in pairs(section.fields[1].data.flags) do
-						-- STOLEN FLAG
-						if flag == "STOLEN" then
-							iThereOffense = true
-							oList["WARNING"] = "Vehicle is reported stolen."
-						end
-					end
-				end
+	if plateData ~= nil then
+		local foundVehicleRegistration = false
 
-				-- Veh Reg
-				if section.label == "Registration Information" then
-					for _, regData in pairs(section.fields) do
-						print(regData.label, regData.value, type(regData.value))
-						-- DMV Status
-						if regData.label == "DMV Status" then
-							if regData.value == "0" then
-								iThereOffense = true
-								oList["Registration DMV Status"] = "is still pending."
-								print("dmv - pending")
-							elseif regData.value == "2" then
-								iThereOffense = true
-								oList["Registration DMV Status"] = "is rejected."
-								print("dmv - rejceted")
-							end
-							-- Registration Status
-						elseif regData.label == "Status" then
-							if regData.value == "PENDING" then
-								iThereOffense = true
-								oList["Registration"] = "is pending."
-								print("reg - pending")
-							elseif regData.value == "EXPIRED" then
-								iThereOffense = true
-								oList["Registration"] = "is expired."
-								print("reg - expired")
-							elseif regData.value == "SUSPENDED" then
-								iThereOffense = true
-								oList["Registration"] = "is suspended."
-								print("reg - suspended")
-							elseif regData.value == "STOLEN" then
+		for i, data in pairs(plateData) do
+			-- VEHICLE REG
+			if data.recordTypeId == 5 then
+				foundVehicleRegistration = true
+				for _, section in pairs(data.sections) do
+					-- Flags
+					-- temp like this, so I can print out that data
+					if section.label == "Flags" then
+						for _, flag in pairs(section.fields[1].data.flags) do
+							-- STOLEN FLAG
+							if flag == "STOLEN" then
 								iThereOffense = true
 								oList["WARNING"] = "Vehicle is reported stolen."
 							end
 						end
 					end
+
+					-- Veh Reg
+					if section.label == "Registration Information" then
+						for _, regData in pairs(section.fields) do
+							print(regData.label, regData.value, type(regData.value))
+							-- DMV Status
+							if regData.label == "DMV Status" then
+								if regData.value == "0" then
+									iThereOffense = true
+									oList["Registration DMV Status"] = "is still pending."
+									print("dmv - pending")
+								elseif regData.value == "2" then
+									iThereOffense = true
+									oList["Registration DMV Status"] = "is rejected."
+									print("dmv - rejceted")
+								end
+								-- Registration Status
+							elseif regData.label == "Status" then
+								if regData.value == "PENDING" then
+									iThereOffense = true
+									oList["Registration"] = "is pending."
+									print("reg - pending")
+								elseif regData.value == "EXPIRED" then
+									iThereOffense = true
+									oList["Registration"] = "is expired."
+									print("reg - expired")
+								elseif regData.value == "SUSPENDED" then
+									iThereOffense = true
+									oList["Registration"] = "is suspended."
+									print("reg - suspended")
+								elseif regData.value == "STOLEN" then
+									iThereOffense = true
+									oList["WARNING"] = "Vehicle is reported stolen."
+								end
+							end
+						end
+					end
 				end
-			end
-			-- BOLO	
-		elseif data.recordTypeId == 3 then
-			local isActive = isBoloActive(data.sections)
-			for _, section in pairs(data.sections) do
-				if section.label == "Bolo Information" then
-					for _, field in pairs(section.fields) do
-						if field.label == "BOLO INFORMATION TYPE" then
-							if field.value == "WARRANT" then
+				-- BOLO	
+			elseif data.recordTypeId == 3 then
+				local isActive = isBoloActive(data.sections)
+				for _, section in pairs(data.sections) do
+					if section.label == "Bolo Information" then
+						for _, field in pairs(section.fields) do
+							if field.label == "BOLO INFORMATION TYPE" then
+								if field.value == "WARRANT" then
+									iThereOffense = true
+									oList["BOLO"] = "Registered Owner has a Active Warrant."
+									goto skip
+								end
+							elseif field.label == "REASON FOR THE BOLO" then
 								iThereOffense = true
-								oList["BOLO"] = "Registered Owner has a Active Warrant."
+								oList["BOLO"] = field.value
 								goto skip
 							end
-						elseif field.label == "REASON FOR THE BOLO" then
-							iThereOffense = true
-							oList["BOLO"] = field.value
-							goto skip
 						end
 					end
 				end
 			end
+
+			::skip::
 		end
 
-		::skip::
+		if not foundVehicleRegistration then
+			iThereOffense = true
+			oList["Registration"] = "does not exist."
+		end
+	else
+		iThereOffense = true
+		oList["Registration"] = "does not exist."
 	end
 
 	if iThereOffense then

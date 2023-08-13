@@ -26,12 +26,12 @@ local function generateDispatchDescription(vehicleData, offenseData, postal, str
 	local dispatchDesc = "Traffic Cam Alert from " .. postal .. ".\nVehicle Information:\n"
 
 	dispatchDesc = dispatchDesc ..
-	"Vehicle is a " ..
-	vehicleData.model ..
-	", with a 10-28 of " ..
-	vehicleData.plate ..
-	". Currently headed " ..
-	GetCardinalDirection(NetworkGetEntityFromNetworkId(vehicleData.entity)) .. " on " .. streetName .. ".\n"
+		"Vehicle is a " ..
+		vehicleData.model ..
+		", with a 10-28 of " ..
+		vehicleData.plate ..
+		". Currently headed " ..
+		GetCardinalDirection(NetworkGetEntityFromNetworkId(vehicleData.entity)) .. " on " .. streetName .. ".\n"
 	dispatchDesc = dispatchDesc .. "\nAlert Information:\n"
 
 	for offense, value in pairs(offenseData) do
@@ -45,7 +45,8 @@ local function generateDispatchNote(vehicleData, offenseData, postal, streetName
 	local dispatchDesc = "Update from " .. postal .. " Traffic Cam.\nVehicle is now "
 
 	dispatchDesc = dispatchDesc ..
-	"headed " .. GetCardinalDirection(NetworkGetEntityFromNetworkId(vehicleData.entity)) .. " on " .. streetName .. ".\n"
+		"headed " ..
+		GetCardinalDirection(NetworkGetEntityFromNetworkId(vehicleData.entity)) .. " on " .. streetName .. ".\n"
 	dispatchDesc = dispatchDesc .. "\nAlert Information:\n"
 
 	for offense, value in pairs(offenseData) do
@@ -80,7 +81,7 @@ RegisterNetEvent("triggerTrafficCam911", function(cPostal, street, primaryStreet
 			["block"] = roundToNearestHundred(cPostal),
 			["address"] = street,
 			["postal"] = cPostal,
-			["code"] = "10-66 - RECKLESS DRIVER",
+			["code"] = "314 - TRAFFIC CAMERA ALERT",
 			["title"] = "Traffic Cam Alert",
 			["description"] = generateDispatchDescription(vehicleData, offenseData, cPostal, primaryStreet),
 			["notes"] = {},

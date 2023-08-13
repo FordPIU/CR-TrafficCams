@@ -103,6 +103,12 @@
     "RegisterCommand",
     "GetClosestObjectOfType",
     "GetVehicleNumberPlateText",
-    "GetDisplayNameFromVehicleModel"
+    "GetDisplayNameFromVehicleModel",
+    "GetStreetNameAtCoord",
+    "GetStreetNameFromHashKey",
+    "GetVehicleNumberPlateTextIndex",
+    "NetworkGetNetworkIdFromEntity",
+    "GetLabelText",
+    "json"
   ]
 }
