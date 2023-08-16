@@ -167,19 +167,21 @@ local function isOffense(playerVehicle)
 				-- BOLO	
 			elseif data.recordTypeId == 3 then
 				local isActive = isBoloActive(data.sections)
-				for _, section in pairs(data.sections) do
-					if section.label == "Bolo Information" then
-						for _, field in pairs(section.fields) do
-							if field.label == "BOLO INFORMATION TYPE" then
-								if field.value == "WARRANT" then
+				if isActive then
+					for _, section in pairs(data.sections) do
+						if section.label == "Bolo Information" then
+							for _, field in pairs(section.fields) do
+								if field.label == "BOLO INFORMATION TYPE" then
+									if field.value == "WARRANT" then
+										iThereOffense = true
+										oList["BOLO"] = "Registered Owner has a Active Warrant."
+										goto skip
+									end
+								elseif field.label == "REASON FOR THE BOLO" then
 									iThereOffense = true
-									oList["BOLO"] = "Registered Owner has a Active Warrant."
+									oList["BOLO"] = field.value
 									goto skip
 								end
-							elseif field.label == "REASON FOR THE BOLO" then
-								iThereOffense = true
-								oList["BOLO"] = field.value
-								goto skip
 							end
 						end
 					end
