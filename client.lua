@@ -47,15 +47,13 @@ local plateInfoReturn = nil
 local function getPlateInformation(playerVehicle)
 	local plateText = GetVehicleNumberPlateText(playerVehicle)
 	if plateText == nil or isAllSpaces(plateText) then return nil end
+	plateText = plateText:gsub("^%s*(.-)%s*$", "%1")
 
-	if requestedData[plateText] == nil then
-		TriggerServerEvent("tcApiPlateReq", GetVehicleNumberPlateText(playerVehicle))
+	if requestedData[plateText] == nil or
+		GetGameTimer() > requestedData[plateText].expire then
+		TriggerServerEvent("tcApiPlateReq", plateText)
 	else
-		if GetGameTimer() > requestedData[plateText].expire then
-			TriggerServerEvent("tcApiPlateReq", GetVehicleNumberPlateText(playerVehicle))
-		else
-			return requestedData[plateText].data
-		end
+		return requestedData[plateText].data
 	end
 
 	repeat
@@ -82,7 +80,7 @@ local function isBoloActive(dataSections)
 		if data.label == "Status" then
 			local value = data.fields[1].value
 
-			if value == 0 then
+			if value == "0" then
 				return true
 			else
 				return false
@@ -167,6 +165,7 @@ local function isOffense(playerVehicle)
 				-- BOLO	
 			elseif data.recordTypeId == 3 then
 				local isActive = isBoloActive(data.sections)
+				print(isActive)
 				if isActive then
 					for _, section in pairs(data.sections) do
 						if section.label == "Bolo Information" then
