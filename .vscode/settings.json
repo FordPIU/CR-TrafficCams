@@ -109,6 +109,11 @@
     "GetVehicleNumberPlateTextIndex",
     "NetworkGetNetworkIdFromEntity",
     "GetLabelText",
-    "json"
+    "json",
+    "LoadResourceFile",
+    "CreateObject",
+    "GetHashKey",
+    "SetEntityRotation",
+    "DeleteObject"
   ]
 }

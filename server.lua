@@ -1,4 +1,4 @@
-local PLATES = {}
+local CallMemory = {}
 
 local function roundToNearestHundred(postalCode)
 	local divided = postalCode / 100
@@ -59,55 +59,60 @@ local function generateDispatchNote(vehicleData, offenseData, postal, streetName
 end
 
 
-RegisterNetEvent("triggerTrafficCam911", function(cPostal, street, primaryStreet, vehiclePlate, vehicleData, offenseData)
-	local function emptycb() end
+RegisterNetEvent("triggerTrafficCam911",
+	function(cPostal, street, primaryStreet, vehiclePlate, vehicleData, offenseData, vehplId)
+		print("Vehicle Ent/Plate ID: " .. vehplId)
+		local function emptycb() end
 
-	local function registerCallId(call)
-		local callId = ExtractIDFromString(call)
+		local function registerCallId(call)
+			local callId = ExtractIDFromString(call)
 
-		repeat
-			Wait(0)
-		until PLATES[vehiclePlate] == "TEMP"
+			repeat
+				Wait(0)
+			until CallMemory[vehplId] == "TEMP"
 
-		PLATES[vehiclePlate] = callId
-	end
+			CallMemory[vehplId] = callId
+		end
 
-	if not PLATES[vehiclePlate] then
-		exports["sonorancad"]:performApiRequest({ {
-			["serverId"] = GetConvar("sonoran_serverId", 1),
-			["origin"] = 1,
-			["status"] = 0,
-			["priority"] = 3,
-			["block"] = roundToNearestHundred(cPostal),
-			["address"] = street,
-			["postal"] = cPostal,
-			["code"] = "314 - TRAFFIC CAMERA ALERT",
-			["title"] = "Traffic Cam Alert",
-			["description"] = generateDispatchDescription(vehicleData, offenseData, cPostal, primaryStreet),
-			["notes"] = {},
-			["units"] = {},
-			["primary"] = nil,
-			["trackPrimary"] = false,
-			["metaData"] = {
-				["plate"] = vehiclePlate,
-			},
-		} }, "NEW_DISPATCH", registerCallId)
+		if not CallMemory[vehplId] then
+			print("Not in Call Memory, new 911")
+			exports["sonorancad"]:performApiRequest({ {
+				["serverId"] = GetConvar("sonoran_serverId", 1),
+				["origin"] = 1,
+				["status"] = 0,
+				["priority"] = 3,
+				["block"] = roundToNearestHundred(cPostal),
+				["address"] = street,
+				["postal"] = cPostal,
+				["code"] = "314 - TRAFFIC CAMERA ALERT",
+				["title"] = "Traffic Cam Alert",
+				["description"] = generateDispatchDescription(vehicleData, offenseData, cPostal, primaryStreet),
+				["notes"] = {},
+				["units"] = {},
+				["primary"] = nil,
+				["trackPrimary"] = false,
+				["metaData"] = {
+					["plate"] = vehiclePlate,
+				},
+			} }, "NEW_DISPATCH", registerCallId)
 
-		PLATES[vehiclePlate] = "TEMP"
+			CallMemory[vehplId] = "TEMP"
 
-		TriggerClientEvent("triggerTrafficCamAlert", -1, cPostal, primaryStreet, offenseData)
-	else
-		repeat
-			Wait(0)
-		until PLATES[vehiclePlate] ~= "TEMP"
-		exports["sonorancad"]:performApiRequest({ {
-			["serverId"] = GetConvar("sonoran_serverId", 1),
-			["callId"] = tonumber(PLATES[vehiclePlate]),
-			["label"] = tonumber(cPostal) < 5000 and "BCTCN" or "LSTCN",
-			["note"] = generateDispatchNote(vehicleData, offenseData, cPostal, primaryStreet)
-		} }, "ADD_CALL_NOTE", emptycb)
-	end
-end)
+			TriggerClientEvent("triggerTrafficCamAlert", -1, cPostal, primaryStreet, offenseData)
+		else
+			print("In memory, adding new note instead of 911")
+			repeat
+				Wait(0)
+			until CallMemory[vehplId] ~= "TEMP"
+
+			exports["sonorancad"]:performApiRequest({ {
+				["serverId"] = GetConvar("sonoran_serverId", 1),
+				["callId"] = tonumber(CallMemory[vehplId]),
+				["label"] = tonumber(cPostal) < 5000 and "BCTCN" or "LSTCN",
+				["note"] = generateDispatchNote(vehicleData, offenseData, cPostal, primaryStreet)
+			} }, "ADD_CALL_NOTE", emptycb)
+		end
+	end)
 
 RegisterNetEvent("tcApiPlateReq", function(plate)
 	local src = source
@@ -123,4 +128,8 @@ RegisterNetEvent("tcApiPlateReq", function(plate)
 		["mi"] = "",
 		["plate"] = plate,
 	} }, "LOOKUP", returnData)
+end)
+
+RegisterNetEvent("crtc_grabCameraJson", function()
+	TriggerClientEvent("ctc_returnCameraJson", source, LoadResourceFile("sonoran-trafficcam", "cameras.json"))
 end)
